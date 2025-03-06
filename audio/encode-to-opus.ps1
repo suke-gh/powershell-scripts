@@ -32,7 +32,7 @@ foreach ($inputFile in Get-ChildItem -Filter *.${format} ) {
         + ':linear=false,anlmdn=s=0.00001:p=0.002:r=0.002'
     Write-Host "filter info : ${filterContent}"
 
-    ffmpeg -i "${inputFile}" -hide_banner -vn -codec:a libopus -b:a 128k -ar 48k -filter:a $filterContent "${outputFilePass}"
+    ffmpeg -i "${inputFile}" -hide_banner -vn -codec:a libopus -b:a 160k -ar 48k -filter:a $filterContent "${outputFilePass}"
 
     Remove-Item $jsonFile
 }

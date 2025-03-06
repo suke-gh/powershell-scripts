@@ -1,5 +1,5 @@
 
-Param($inputFile)
+Param($inputFile, $qpi, $qpp)
 
 # Checked either specified input file or not.
 if ($null -eq $inputFile) {
@@ -26,7 +26,7 @@ $audioFilterContent = "loudnorm=I=-14:LRA=23:TP=-1:offset=0" `
 Write-Output "filter info : ${audioFilterContent}"
 
 ffmpeg -i ${inputFile} `
-    -codec:v hevc_nvenc -rc:v constqp -init_qpI 25 -init_qpP 29 -g 120 -fps_mode cfr -r 60 -color_range pc -multipass fullres -profile:v main10 -tag:v hvc1 -level 5.2 `
+    -codec:v hevc_nvenc -rc:v constqp -init_qpI ${qpi} -init_qpP ${qpp} -g 120 -fps_mode cfr -r 60 -multipass fullres -profile:v main10 -tag:v hvc1 -level 5.2 `
     -codec:a libopus -b:a 128k -ar: 48k -async 2 -af ${audioFilterContent} `
     -hide_banner output-${inputFile}
 

@@ -8,8 +8,8 @@ if ($null -eq $format) {
 }
 
 # pameters
-$frames     = 12
-$rate       = 5
+$frames     = 30
+$rate       = 4
 $colorRange = 'pc'
 
 switch ($format) {

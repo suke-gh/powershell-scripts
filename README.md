@@ -70,9 +70,9 @@ Add number to "track" in metadata by obtained order for all audio file having ce
 ### hevc-qp-encode.ps1
 必要環境(Required): ffmpeg ver.6.0
 
-動画のラウドネス値を取得し、音声のラウドネス値の正規化とノイズを除去、さらに映像をHEVCでエンコードする。NVENCを用いるのでGeForceシリーズのGPUが必要。引数はエンコードを行いたい動画ファイルのパス。現在のディレクトリでスクリプトを実行するなら拡張子を含むファイル名だけでよい。
+動画のラウドネス値を取得し、音声のラウドネス値の正規化とノイズを除去、さらに映像をHEVCでエンコードする。NVENCを用いるのでGeForceシリーズのGPUが必要。引数はエンコードを行いたい動画ファイルのパス、Iフレームの品質を表す整数値、Pフレームの品質を表す整数値。現在のディレクトリでスクリプトを実行するなら拡張子を含むファイル名だけでよい。
 
-Get loudness value of video file on current directory, then normalize and remove the noise from it. And encode video to HEVC. This need GPU of GeForce series because use NVENC. The parameter is a path of video file that want to encode. It is filename contained the filename extension only if run a script in current directory.
+Get loudness value of video file on current directory, then normalize and remove the noise from it. And encode video to HEVC. This need GPU of GeForce series because use NVENC. The parameters are a path of video file that want to encode, an integer presenting quality of I frame and an integer presenting quality of P frame. It is filename contained the filename extension only if run a script in current directory.
 
 ```
 > &"$env:USERPROFILE\video\hevc-qp-encode.ps1" 2023-07-06_23-52-32.mp4
@@ -81,7 +81,7 @@ Get loudness value of video file on current directory, then normalize and remove
 ### thumbail.ps1
 必要環境(Required): ffmpeg ver.6.0
 
-動画の特定の時間から、5フレーム毎にその場面の画像を12枚生成する。画像は現在のディレクトリにある「ss」というディレクトリに保存される。第一引数は対象にする動画ファイル、第二引数は開始位置に指定する時間、第三引数は画像の形式。
+動画の特定の時間から、4フレーム毎にその場面の画像を30枚生成する。画像は現在のディレクトリにある「ss」というディレクトリに保存される。第一引数は対象にする動画ファイル、第二引数は開始位置に指定する時間、第三引数は画像の形式。
 
 Generate 12 images of scene by 5 frames form specific time of video. Image saved at "ss" directory under current directory. First parameter is a target video file, second parameter is time specifying start point, third parameter is type of image.
 
