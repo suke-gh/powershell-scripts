@@ -1,5 +1,5 @@
 
-Param($video, $time, $format)
+Param($format, $video, $time)
 
 # Checked either specified a format or not.
 if ($null -eq $format) {
@@ -7,24 +7,31 @@ if ($null -eq $format) {
     $format = 'jpg'
 }
 
+# Search 'thumbnail' directory and create it.
+Get-ChildItem -Path '.\' -Directory | Where-Object Name -Match 'thumbnails'
+if ($Matches -eq $null) {
+    Write-Host 'Created thumbnail directory.'
+    New-Item -Path '.\' -Name 'thumbnails' -ItemType 'Directory'
+}
+
 # pameters
-$frames     = 30
-$rate       = 4
+$frames     = 40
+$rate       = 3
 $colorRange = 'pc'
 
 switch ($format) {
     avif {
-        ffmpeg -ss ${time} -i "${video}" -hide_banner `
+        ffmpeg -ss $time -i $video -hide_banner `
             -c:v libaom-av1 -crf 12 -still-picture 1 -tune ssim -denoise-noise-level 8 `
-            -frames:v ${frames} -r ${rate} -color_range ${colorRange} -f image2 "./ss/%04d.avif"
+            -frames:v ${frames} -r ${rate} -color_range ${colorRange} -f image2 ".\thumbnails\%04d.avif"
         break
     }
     png {
-        ffmpeg -ss ${time} -i "${video}" -hide_banner -frames:v ${frames} -r ${rate} -color_range ${colorRange} -q:v 0 -f image2 "./ss/%04d.png"
+        ffmpeg -ss ${time} -i $video -hide_banner -frames:v ${frames} -r ${rate} -color_range ${colorRange} -q:v 0 -f image2 ".\thumbnails\%04d.png"
         break
     }
     Default {
-        ffmpeg -ss ${time} -i "${video}" -hide_banner -frames:v ${frames} -r ${rate} -color_range ${colorRange} -pix_fmt yuvj420p -q:v 0 -f image2 "./ss/%04d.jpg"
+        ffmpeg -ss ${time} -i "${video}" -hide_banner -frames:v ${frames} -r ${rate} -color_range ${colorRange} -pix_fmt yuvj420p -q:v 0 -f image2 ".\thumbnails\%04d.jpg"
         break
     }
 }
