@@ -1,5 +1,5 @@
 
-Param($inputFileName)
+Param($qpi, $qpp, $inputFileName)
 
 # Checked either specified input file or not.
 if ($null -eq $inputFileName) {
@@ -22,19 +22,23 @@ Out-File -FilePath $jsonFileName -InputObject $jsonData
 
 # Built values of filter option.
 $jsonData = Get-Content -Raw $jsonFileName | ConvertFrom-Json
-$audioFilterContent = 'loudnorm=I=-14:LRA=23:TP=-1:offset=0:' `
-    + "measured_I=$($jsonData.input_i):" `
-    + "measured_TP=$($jsonData.input_tp):" `
-    + "measured_LRA=$($jsonData.input_lra):" `
-    + "measured_thresh=$($jsonData.input_thresh):" `
-    + "offset=$($jsonData.target_offset):" `
-    + 'linear=false,anlmdn=s=0.00001:p=0.002:r=0.004'
+$audioFilterContent = 'loudnorm=I=-14:LRA=23:TP=-1:offset=0' `
+    + ":measured_I=$($jsonData.input_i)" `
+    + ":measured_TP=$($jsonData.input_tp)" `
+    + ":measured_LRA=$($jsonData.input_lra)" `
+    + ":measured_thresh=$($jsonData.input_thresh)" `
+    + ":offset=$($jsonData.target_offset)" `
+    + ':linear=false' `
+    + ',anlmdn=s=0.00001:p=0.002:r=0.004'
 
 Remove-Item $jsonFileName
 
 $timeStamp = Get-Date -Format 'yyyy/MM/dd HH:mm:ss'
-Out-File -FilePath '.\loudnessLogs.txt' -InputObject "[ $timeStamp ] $inputFileName > $audioFilterContent" -Append
+Out-File -FilePath '.\loudnessLogs.txt' -InputObject "[ $timeStamp ] $inputFileName > qpi=$qpi qpp=$qpp $audioFilterContent" -Append
 
-ffmpeg -i $inputFileName -codec:v copy -codec:a aac -aac_coder twoloop -b:a 192k -ar: 48k -async 2 -af $audioFilterContent -hide_banner output-$inputFileName
+ffmpeg -i $inputFileName `
+    -codec:v h264_nvenc -rc:v constqp -init_qpI $qpi -init_qpP $qpp -g 120 -fps_mode cfr -r 60 -tune hq -multipass fullres -profile:v high `
+    -codec:a aac -aac_coder twoloop -b:a 192k -ar: 48k -async 2 -af $audioFilterContent `
+    -hide_banner output-$inputFileName
 
 Write-Host '[' (Get-Date -Format 'yyyy/MM/dd HH:mm:ss') ']' 'End encode video.'
