@@ -9,30 +9,37 @@ if ($null -eq $format) {
 }
 
 # Created a directory for encoded audio file.
-$dirName = 'encoded'
-New-Item -Path . -Name $dirName -ItemType 'directory' -Force
+$dirName = 'encoded - m4a'
+New-Item -Path '.\' -Name $dirName -ItemType 'directory' -Force
 
-foreach ($inputFile in Get-ChildItem -Filter *.${format} ) {
-    $outputFilePass = "./${dirName}/" + "${inputFile}".Replace(${format},'aac')
-    $jsonFile       = "loudness-${inputFile}.json"
-    Write-Host "Checking the loudness... : ${inputFile}"
+foreach ($inputFileName in Get-ChildItem -Filter *.$format ) {
+    $outputFilePass = ".\$dirName\$inputFileName".Replace('.' + $format,'.m4a').ToString()
+    $metaTitle      = "$inputFileName".Replace(".$format", '').ToString()
+    $jsonFileName   = ".\tmp-$inputFileName-loudness.json"
 
-    # Wrote out loudness information of input audio file to json file.
-    ffmpeg -i $inputFile -hide_banner -vn -filter:a loudnorm=I=-14:LRA=23:TP=-1:offset=0:print_format=json -f null - 2> $jsonFile
-    Get-Content $jsonFile -Tail 12 | Tee-Object -FilePath $jsonFile
+    Write-Host '[' (Get-Date -Format 'yyyy/MM/dd HH:mm:ss') ']' "Checking the loudness... : $inputFileName"
+    ffmpeg -i $inputFileName -filter:a loudnorm=I=-14:LRA=23:TP=-1:offset=0:print_format=json -vn -f null - -hide_banner 2> $jsonFileName
+    Write-Host '[' (Get-Date -Format 'yyyy/MM/dd HH:mm:ss') ']' 'End checking the loudness.'
+
+    # Generate json file recording loudness information of video
+    $jsonData = Get-Content -Path $jsonFileName -Tail 15
+    Out-File -FilePath $jsonFileName -InputObject $jsonData
+    $jsonData = Get-Content -Path $jsonFileName -TotalCount 12
+    Out-File -FilePath $jsonFileName -InputObject $jsonData
 
     # Built values of filter option.
-    $jsonData      = Get-Content -Raw $jsonFile | ConvertFrom-Json
-    $filterContent = "loudnorm=I=-14:LRA=23:TP=-1:offset=0" `
+    $jsonData = Get-Content -Raw $jsonFileName | ConvertFrom-Json
+    $filterContent = 'loudnorm=I=-14:LRA=23:TP=-1:offset=0' `
         + ":measured_I=$($jsonData.input_i)" `
         + ":measured_TP=$($jsonData.input_tp)" `
         + ":measured_LRA=$($jsonData.input_lra)" `
         + ":measured_thresh=$($jsonData.input_thresh)" `
         + ":offset=$($jsonData.target_offset)" `
-        + ':linear=false,anlmdn=s=0.00001:p=0.002:r=0.002'
-    Write-Host "filter info : ${filterContent}"
+        + ':linear=false,anlmdn=s=0.0001:p=0.002:r=0.005:o=1:m=11'
 
-    ffmpeg -i "${inputFile}" -hide_banner -vn -codec:a aac -aac_coder twoloop -b:a 192k -ar 48k -filter:a $filterContent "${outputFilePass}"
+    Remove-Item $jsonFileName
 
-    Remove-Item $jsonFile
+    ffmpeg -i "$inputFileName" -hide_banner -vn -codec:a aac -aac_coder twoloop -b:a 192k -ar 48k -metadata title="$metaTitle" -filter:a $filterContent -hide_banner "$outputFilePass"
 }
+
+Write-Host '[' (Get-Date -Format 'yyyy/MM/dd HH:mm:ss') ']' 'End encode audio file.'
