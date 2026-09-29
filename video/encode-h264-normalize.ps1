@@ -35,6 +35,13 @@ Remove-Item $jsonFileName
 $timeStamp = Get-Date -Format 'yyyy/MM/dd HH:mm:ss'
 Out-File -FilePath '.\loudnessLogs.txt' -InputObject "[ $timeStamp ] $inputFileName > $audioFilterContent" -Append
 
-ffmpeg -i $inputFileName -codec:v copy -codec:a aac -aac_coder twoloop -b:a 192k -ar: 48k -async 2 -af $audioFilterContent -hide_banner output-$inputFileName
+ffmpeg -i $inputFileName `
+    -codec:v copy `
+    -codec:a libopus -b:a 192k -ar: 48k `
+    -async 2 `
+    -af $audioFilterContent `
+    -map_metadata 0 `
+    -hide_banner `
+    output-$inputFileName
 
 Write-Host '[' (Get-Date -Format 'yyyy/MM/dd HH:mm:ss') ']' 'End encode video.'
