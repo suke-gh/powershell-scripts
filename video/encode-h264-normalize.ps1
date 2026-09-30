@@ -16,9 +16,9 @@ Write-Host '[' (Get-Date -Format 'yyyy/MM/dd HH:mm:ss') ']' 'Completed checking 
 
 # Generate json file recording loudness information of video
 $jsonData = Get-Content -Path $jsonFileName -Tail 15
-Out-File -FilePath $jsonFileName -InputObject $jsonData
+Out-File -FilePath $jsonFileName -InputObject $jsonData -Encoding utf8
 $jsonData = Get-Content -Path $jsonFileName -TotalCount 12
-Out-File -FilePath $jsonFileName -InputObject $jsonData
+Out-File -FilePath $jsonFileName -InputObject $jsonData -Encoding utf8
 
 # Built values of filter option.
 $jsonData = Get-Content -Raw $jsonFileName | ConvertFrom-Json
@@ -32,16 +32,21 @@ $audioFilterContent = 'loudnorm=I=-14:LRA=23:TP=-1:offset=0:' `
 
 Remove-Item $jsonFileName
 
-$timeStamp = Get-Date -Format 'yyyy/MM/dd HH:mm:ss'
-Out-File -FilePath '.\loudnessLogs.txt' -InputObject "[ $timeStamp ] $inputFileName > $audioFilterContent" -Append
+#$timeStamp = Get-Date -Format 'yyyy/MM/dd HH:mm:ss'
+#Out-File -FilePath '.\loudnessLogs.txt' -InputObject "[ $timeStamp ] $inputFileName > $audioFilterContent" -Append -Encoding utf8
 
 ffmpeg -i $inputFileName `
     -codec:v copy `
-    -codec:a libopus -b:a 192k -ar: 48k `
+    -codec:a aac `
+    -b:a 192k `
+    -ar: 48k `
     -async 2 `
     -af $audioFilterContent `
-    -map_metadata 0 `
+    -metadata comment="$audioFilterContent" `
+    -movflags faststart `
     -hide_banner `
-    output-$inputFileName
+    "output-$inputFileName"
+
+Get-Job | Wait-Job
 
 Write-Host '[' (Get-Date -Format 'yyyy/MM/dd HH:mm:ss') ']' 'End encode video.'
